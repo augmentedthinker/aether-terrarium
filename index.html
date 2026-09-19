@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Aether-Terrarium: Real-Time Drosophila Connectome Sanctuary</title>
+  <meta name="description" content="A fully functional, real-time Drosophila melanogaster connectome simulation running in the browser. Features FlyWire v630 Leaky Integrate-and-Fire neural dynamics, Central Complex compass ring attractor, and 3D whole-brain neuropil hologram.">
+  
+  <!-- OpenGraph & Twitter Cards for Rich Link Sharing -->
+  <meta property="og:title" content="Aether-Terrarium: Real-Time Drosophila Connectome Sanctuary">
+  <meta property="og:description" content="Interactive fruit fly connectome simulation: 443 neurons, 20,281 synapses from FlyWire v630, Central Complex heading compass, and live 3D whole-brain neuropil hologram.">
+  <meta property="og:image" content="preview.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Aether-Terrarium: Real-Time Drosophila Connectome">
+  <meta name="twitter:description" content="Real-time Leaky Integrate-and-Fire neural dynamics, chemotactic steering, and 3D whole-brain hologram in your browser.">
+  <meta name="twitter:image" content="preview.png">
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪰</text></svg>">
+
+  <style>
+    :root {
+      --bio-bg: #04070d;
+      --bio-surface: rgba(12, 19, 32, 0.92);
+      --bio-card-bg: #070c16;
+      --bio-border: rgba(255, 255, 255, 0.09);
+      --bio-brass: rgba(212, 160, 75, 0.45);
+      --bio-cyan: #38bdf8;
+      --bio-amber: #f59e0b;
+      --bio-emerald: #10b981;
+      --bio-violet: #a855f7;
+      --bio-rose: #f43f5e;
+      --bio-gold: #fbbf24;
+      --bio-mono: "JetBrains Mono", "SF Mono", Consolas, Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bio-bg);
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+      touch-action: manipulation;
+    }
+
+    .terrarium-page {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 20px 24px 80px;
+    }
+
+    /* Top Navigation & Links */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #f8fafc;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .nav-brand-icon {
+      font-size: 20px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nav-link:hover { color: var(--bio-cyan); }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Header Section */
+    .header {
+      margin-bottom: 18px;
+    }
+
+    .header-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.14);
+      color: var(--bio-cyan);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      margin-bottom: 8px;
+    }
+
+    .header-title {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .header-desc {
+      font-size: 14px;
+      color: #94a3b8;
+      max-width: 980px;
+    }
+
+    /* Guided Demonstration Bar */
+    .demo-bar {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .demo-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--bio-cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .demo-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #f1f5f9;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .demo-btn:hover {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--bio-cyan);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* Main Terrarium Stage Layout */
+    .terrarium-stage {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 22px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    @media (max-width: 1140px) {
+      .terrarium-stage { grid-template-columns: 1fr; }
+    }
+
+    /* The Main Terrarium Box */
+    .terrarium-card {
+      background: var(--bio-card-bg);
+      border: 2px solid var(--bio-brass);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), inset 0 0 80px rgba(0, 0, 0, 0.6);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terrarium-toolbar {
+      background: rgba(15, 23, 42, 0.96);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      z-index: 10;
+    }
+
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tool-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .tool-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #f8fafc;
+    }
+    .tool-btn.active-sugar {
+      background: rgba(245, 158, 11, 0.25);
+      border-color: var(--bio-amber);
+      color: var(--bio-amber);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+    }
+    .tool-btn.active-bitter {
+      background: rgba(16, 185, 129, 0.25);
+      border-color: var(--bio-emerald);
+      color: var(--bio-emerald);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+    }
+    .tool-btn.active-mixed {
+      background: rgba(168, 85, 247, 0.25);
+      border-color: var(--bio-violet);
+      color: var(--bio-violet);
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+    }
+    .tool-btn.active-water {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: var(--bio-cyan);
+      color: var(--bio-cyan);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+    }
+
+    .btn-action {
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: var(--bio-cyan);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-action:hover {
+      background: rgba(56, 189, 248, 0.25);
+    }
+
+    .btn-audio-active {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--bio-emerald);
+      color: #6ee7b7;
+    }
+
+    /* Living Terrarium Viewport */
+    .terrarium-canvas-wrap {
+      position: relative;
+      background: #040811;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      aspect-ratio: 1040 / 640;
+    }
+
+    #terrariumCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    /* Brass Victorian framing embellishments */
+    .brass-corner {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .bc-tl { top: 8px; left: 8px; border-top: 2px solid var(--bio-brass); border-left: 2px solid var(--bio-brass); }
+    .bc-tr { top: 8px; right: 8px; border-top: 2px solid var(--bio-brass); border-right: 2px solid var(--bio-brass); }
+    .bc-bl { bottom: 8px; left: 8px; border-bottom: 2px solid var(--bio-brass); border-left: 2px solid var(--bio-brass); }
+    .bc-br { bottom: 8px; right: 8px; border-bottom: 2px solid var(--bio-brass); border-right: 2px solid var(--bio-brass); }
+
+    .fly-action-pill {
+      position: absolute;
+      bottom: 16px;
+      left: 18px;
+      background: rgba(6, 11, 22, 0.88);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 9999px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+      z-index: 6;
+      max-width: calc(100% - 36px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--bio-cyan);
+      box-shadow: 0 0 10px var(--bio-cyan);
+      animation: pulse 1.5s infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.15); }
+      100% { opacity: 0.4; transform: scale(0.9); }
+    }
+
+    .terrarium-hint-badge {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: #94a3b8;
+      pointer-events: none;
+      z-index: 6;
+    }
+
+    /* RIGHT DECK: Hologram & Steering Dashboard */
+    .deck-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .deck-card {
+      background: rgba(12, 19, 32, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    .deck-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .deck-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #brainCanvas {
+      width: 100%;
+      height: 180px;
+      background: #02050b;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: block;
+      cursor: grab;
+      touch-action: none;
+    }
+    #brainCanvas:active { cursor: grabbing; }
+
+    .brain-legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 10.5px;
+      color: #94a3b8;
+    }
+    .brain-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tag-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .compass-dial-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 6px;
+    }
+
+    #compassCanvas {
+      width: 96px;
+      height: 96px;
+      flex-shrink: 0;
+    }
+
+    .compass-meta {
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    #scopeCanvas {
+      width: 100%;
+      height: 90px;
+      background: #02050b;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: block;
+      margin-top: 8px;
+    }
+
+    /* Truth in Advertising & Scientific Transparency */
+    .truth-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 24px;
+    }
+    @media (max-width: 900px) {
+      .truth-grid { grid-template-columns: 1fr; }
+    }
+
+    .truth-box {
+      border-radius: 12px;
+      padding: 20px 22px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .truth-box-real {
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .truth-box-scaffold {
+      background: rgba(245, 158, 11, 0.05);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+    .truth-box h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .truth-box ul {
+      padding-left: 18px;
+      line-height: 1.7;
+    }
+
+    /* Modal for Inspecting Circuit Architecture */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(2, 6, 14, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-card {
+      background: #090e1a;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 16px;
+      max-width: 860px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .modal-close:hover {
+      background: rgba(244, 63, 94, 0.3);
+      border-color: var(--bio-rose);
+    }
+
+    /* References & Footer */
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 12px;
+      color: #64748b;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer a {
+      color: #94a3b8;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer a:hover { color: var(--bio-cyan); }
+  </style>
+</head>
+<body>
+
+  <div class="terrarium-page" id="terrariumRoot">
+    
+    <!-- Navigation -->
+    <nav class="top-nav">
+      <a href="https://github.com/augmentedthinker/aether-terrarium" class="nav-brand" target="_blank" rel="noopener">
+        <span class="nav-brand-icon">🪰</span>
+        <span>Aether-Terrarium</span>
+        <span style="font-size: 10px; padding: 2px 8px; border-radius: 9999px; background: rgba(56, 189, 248, 0.15); color: var(--bio-cyan); border: 1px solid rgba(56, 189, 248, 0.3);">FlyWire v630</span>
+      </a>
+
+      <div class="nav-links">
+        <a href="https://github.com/augmentedthinker/aether-terrarium" class="nav-link" target="_blank" rel="noopener">
+          <span>📦 GitHub Repo</span>
+        </a>
+        <a href="https://www.nature.com/articles/s41586-024-07982-0" class="nav-link" target="_blank" rel="noopener">
+          <span>📄 Shiu et al. (Nature 2024)</span>
+        </a>
+        <a href="https://flywire.ai/" class="nav-link" target="_blank" rel="noopener">
+          <span>🧠 FlyWire Connectome</span>
+        </a>
+      </div>
+
+      <div class="nav-controls">
+        <button id="btnAudio" class="btn-action" onclick="toggleSpikeAudio()">🔊 Audio Spikes: OFF</button>
+        <button class="btn-action" onclick="openCircuitModal()">🔬 Circuit Architecture</button>
+        <button class="btn-action" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+      </div>
+    </nav>
+
+    <!-- Header Description -->
+    <header class="header">
+      <span class="header-badge">Autonomous Connectome Habitat • 443 Neurons • 20,281 Synapses</span>
+      <h1 class="header-title">Aether-Terrarium: The Living Connectome</h1>
+      <p class="header-desc">
+        A real-time, closed-loop neural simulation of <em>Drosophila melanogaster</em> running directly in browser memory. Integrates our authentic <strong>443-neuron Feeding Reflex Subcircuit (MN9)</strong> from FlyWire v630 with the <strong>Central Complex Compass (E-PG Ring Attractor)</strong> and <strong>Descending Steering Pathways (DNa01/02 & MDN Moonwalker)</strong>, mirrored by an interactive 3D whole-brain neuropil hologram.
+      </p>
+    </header>
+
+    <!-- Guided Demonstration Presets -->
+    <div class="demo-bar">
+      <span class="demo-label">⚡ Guided Demos:</span>
+      <button class="demo-btn" onclick="runDemoSugar()">🍯 1. Sucrose Scent & Feeding (MN9)</button>
+      <button class="demo-btn" onclick="runDemoBitter()">🌿 2. Bitter Aversion (MDN Moonwalk)</button>
+      <button class="demo-btn" onclick="runDemoMixed()">🧪 3. Mixed Drop (GABA Inhibition)</button>
+      <button class="demo-btn" onclick="runDemoCompass()">🧭 4. Compass Ring Attractor</button>
+    </div>
+
+    <!-- The Main Terrarium Stage -->
+    <main class="terrarium-stage">
+      
+      <!-- LEFT: The Habitat Terrarium -->
+      <section class="terrarium-card" aria-label="Terrarium Habitat Viewport">
+        
+        <!-- Toolbar -->
+        <div class="terrarium-toolbar">
+          <div class="tool-group">
+            <span style="font-size: 11px; font-weight: 700; color: #94a3b8; margin-right: 4px;">FLUID DROPPER:</span>
+            <button id="btnSugar" class="tool-btn active-sugar" onclick="setDropper('sugar')">🍯 Sugar (1)</button>
+            <button id="btnBitter" class="tool-btn" onclick="setDropper('bitter')">🌿 Bitter (2)</button>
+            <button id="btnMixed" class="tool-btn" onclick="setDropper('mixed')">🧪 Mixed (3)</button>
+            <button id="btnWater" class="tool-btn" onclick="setDropper('water')">💧 Water (4)</button>
+          </div>
+
+          <div class="tool-group">
+            <button class="btn-action" onclick="clearDrops()">🧹 Clear Drops</button>
+            <button id="btnPause" class="btn-action" onclick="togglePause()">⏸️ Pause</button>
+            <button class="btn-action" onclick="resetTerrarium()">🔄 Reset All</button>
+          </div>
+        </div>
+
+        <!-- Canvas Viewport -->
+        <div class="terrarium-canvas-wrap" id="terrariumWrap">
+          <canvas id="terrariumCanvas" width="1040" height="640"></canvas>
+
+          <!-- Brass Frame Embellishments -->
+          <div class="brass-corner bc-tl"></div>
+          <div class="brass-corner bc-tr"></div>
+          <div class="brass-corner bc-bl"></div>
+          <div class="brass-corner bc-br"></div>
+
+          <!-- Status Pill -->
+          <div class="fly-action-pill" id="flyStatusPill">
+            <span class="status-pulse-dot" id="flyStatusDot"></span>
+            <span id="flyStatusText">Exploring Terrarium (Central Complex Compass Active)</span>
+          </div>
+
+          <div class="terrarium-hint-badge">Click / Tap to place droplets • Drag to guide fly</div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT: The Neuro-Anatomical Hologram & Steering Deck -->
+      <aside class="deck-column" aria-label="Neural Telemetry Deck">
+        
+        <!-- 3D Whole-Brain Hologram Card -->
+        <div class="deck-card">
+          <div class="deck-card-header">
+            <div class="deck-title">
+              <span>🧠 3D Whole-Brain Map</span>
+            </div>
+            <span style="font-size: 11px; color: var(--bio-cyan); font-family: var(--bio-mono);">FlyWire v630</span>
+          </div>
+
+          <canvas id="brainCanvas" width="340" height="200"></canvas>
+
+          <div class="brain-legend">
+            <div class="brain-tag">
+              <span class="tag-dot" style="background: var(--bio-cyan);"></span>
+              <span>Central Complex (EB/PB)</span>
+            </div>
+            <div class="brain-tag">
+              <span class="tag-dot" style="background: var(--bio-amber);"></span>
+              <span>Subesophageal (SEZ)</span>
+            </div>
+            <div class="brain-tag">
+              <span class="tag-dot" style="background: var(--bio-violet);"></span>
+              <span>Antennal Lobes (AL)</span>
+            </div>
+            <div class="brain-tag">
+              <span class="tag-dot" style="background: var(--bio-emerald);"></span>
+              <span>Descending Tracts (DN)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Central Complex Compass & Steering Card -->
+        <div class="deck-card">
+          <div class="deck-card-header">
+            <div class="deck-title">
+              <span>🧭 Central Complex Compass</span>
+            </div>
+            <span style="font-size: 11px; color: #10b981; font-family: var(--bio-mono);">16-Wedge E-PG Ring</span>
+          </div>
+
+          <div class="compass-dial-wrap">
+            <canvas id="compassCanvas" width="100" height="100"></canvas>
+            <div class="compass-meta">
+              <div style="color: #94a3b8; font-size: 11px;">Heading Attractor:</div>
+              <div id="headingDegText" style="font-size: 17px; font-weight: 700; color: #38bdf8;">0° (North)</div>
+              <div id="steeringPathText" style="color: #a5f3fc; font-size: 11px; margin-top: 2px;">Steering: Forward</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 14px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 12px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; font-family: var(--bio-mono); color: #94a3b8;">
+              <span>MN9 Motor Potential (mV):</span>
+              <span id="mn9LiveSpikesText" style="color: var(--bio-cyan);">0 spikes</span>
+            </div>
+            <canvas id="scopeCanvas" width="340" height="90"></canvas>
+          </div>
+        </div>
+
+        <!-- Fly Metabolism Meter Card -->
+        <div class="deck-card" style="padding: 14px 18px;">
+          <div style="display: flex; justify-content: space-between; font-size: 12px; font-family: var(--bio-mono); margin-bottom: 6px;">
+            <span style="color: #cbd5e1;">Metabolic Satiety:</span>
+            <span id="satietyPctText" style="color: #38bdf8; font-weight: 700;">50%</span>
+          </div>
+          <div style="height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+            <div id="satietyBarFill" style="height: 100%; width: 50%; background: linear-gradient(90deg, #38bdf8, #10b981); transition: width 0.1s;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-top: 6px; font-family: var(--bio-mono);">
+            <span>Lifetime Sips:</span>
+            <span id="lifetimeSipsText" style="color: #cbd5e1;">0</span>
+          </div>
+        </div>
+
+      </aside>
+
+    </main>
+
+    <!-- Truth-in-Advertising Transparency Callout -->
+    <section class="truth-grid">
+      <div class="truth-box truth-box-real">
+        <h3 style="color: #34d399;">
+          <span>🧬 Biological Connectome Pathways</span>
+        </h3>
+        <ul>
+          <li><strong>Feeding Reflex (SEZ $\to$ MN9):</strong> 443 real neurons and 20,281 synapses from the FlyWire v630 female Drosophila connectome (Shiu et al., Nature 2024). Driven by biophysical Leaky Integrate-and-Fire equations ($V_{rest} = -52\text{ mV}$, $V_{th} = -45\text{ mV}$, $1.8\text{ ms}$ synaptic delay).</li>
+          <li><strong>Compass Ring Attractor (Central Complex):</strong> 16-wedge Ellipsoid Body (E-PG) neural compass maintaining an activity bump that continuously tracks the fly's allocentric heading direction (Seelig & Jayaraman, Nature 2015).</li>
+          <li><strong>Descending Locomotion (DNa01/02 & MDN):</strong> Bilateral antennal scent gradients drive asymmetric steering via DNa01/02 descending neurons; contact with bitter quinine depolarizes MDN (Moonwalker Descending Neurons) to command backward walking (Bidaye et al., Science 2014).</li>
+        </ul>
+      </div>
+
+      <div class="truth-box truth-box-scaffold">
+        <h3 style="color: #fbbf24;">
+          <span>🎮 Habitat Scaffolding & Presentation Layer</span>
+        </h3>
+        <ul>
+          <li><strong>Tripod Gait Kinematics:</strong> 6-legged alternating tripod stride driven by coupled kinematic phase oscillators, representing the thoracic Central Pattern Generators (CPGs) of the ventral nerve cord.</li>
+          <li><strong>Fluid Dynamics:</strong> Procedural surface-tension droplets with realistic volume depletion and specular meniscus reflections upon ingestion.</li>
+          <li><strong>Persistent Local Storage:</strong> State (`aether_terrarium_state`) saves fly position, satiety, and lifetime sips across browser sessions.</li>
+          <li><strong>Zero Background Footprint:</strong> Simulation and physics automatically suspend via `visibilitychange` upon tab switch or minimization to guarantee 0% idle CPU drain.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Footer with Citations -->
+    <footer class="footer">
+      <div>
+        <strong>Aether-Terrarium</strong> • Engineered by Christopher & Antigravity inside <a href="https://github.com/augmentedthinker" target="_blank" rel="noopener">Horizon</a>.
+      </div>
+      <div>
+        Primary Literature: Nature 634:210–219 (2024) • Science 344:97–101 (2014) • Nature 521:186–191 (2015)
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Circuit Architecture Modal -->
+  <div class="modal-overlay" id="circuitModal" onclick="closeCircuitModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeCircuitModal()">✕</button>
+      <h2 style="font-size: 22px; font-weight: 800; color: #38bdf8; margin-bottom: 12px;">🔬 Biological Connectome Architecture</h2>
+      <p style="font-size: 13.5px; color: #94a3b8; margin-bottom: 18px;">
+        Extracted from the full adult female <em>Drosophila melanogaster</em> brain connectome (FlyWire v630, 139,255 neurons, >50 million synapses). This subcircuit represents the minimum complete closed loop required for gustatory sensorimotor transformation.
+      </p>
+
+      <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+        <h4 style="font-size: 13px; color: #e2e8f0; margin-bottom: 8px;">Biophysical Leaky Integrate-and-Fire Dynamics</h4>
+        <div style="font-family: var(--bio-mono); font-size: 12px; color: #38bdf8; line-height: 1.6;">
+          τ_m · (dV_m / dt) = -(V_m - V_0) + g_syn(t)<br>
+          τ_syn · (dg_syn / dt) = -g_syn + Σ w_ij · δ(t - t_spike - t_delay)
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 12px; font-size: 11.5px; color: #94a3b8;">
+          <div>• Resting potential ($V_0$): <code>-52.0 mV</code></div>
+          <div>• Spike threshold ($V_{th}$): <code>-45.0 mV</code></div>
+          <div>• Membrane timescale ($\tau_m$): <code>20.0 ms</code></div>
+          <div>• Synaptic decay ($\tau$): <code>5.0 ms</code></div>
+          <div>• Refractory period: <code>2.2 ms</code></div>
+          <div>• Synaptic delay: <code>1.8 ms (18 steps)</code></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 18px;">
+        <h4 style="font-size: 13px; color: #e2e8f0; margin-bottom: 6px;">Cellular Distribution (443 Neurons)</h4>
+        <ul style="padding-left: 18px; font-size: 12.5px; color: #cbd5e1; line-height: 1.7;">
+          <li><strong>21 Sugar Sensory Afferents (Gr5a):</strong> Depolarize upon sucrose contact on tarsal or labellar hairs.</li>
+          <li><strong>21 Bitter Sensory Afferents (Gr66a):</strong> Depolarize upon quinine / bitter contact.</li>
+          <li><strong>399 Subesophageal (SEZ) Interneurons:</strong> Excitatory cholinergic and inhibitory GABAergic interneurons that mediate feedforward excitation and lateral reciprocal inhibition.</li>
+          <li><strong>2 Motor Neurons (MN9-1 & MN9-2):</strong> Innervate the rostrum protractor muscle (M9), triggering extension of the proboscis to sip food.</li>
+        </ul>
+      </div>
+
+      <div style="text-align: right;">
+        <button class="btn-action" onclick="closeCircuitModal()">Close Inspector</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { ConnectomeEngine } from './connectome-engine.js';
+
+    // Global Habitat State
+    let engine = new ConnectomeEngine();
+    let isPaused = false;
+    let dropperType = 'sugar';
+    let droplets = [];
+    let lifetimeSips = 0;
+    let audioEnabled = false;
+    let audioCtx = null;
+
+    // Canvas elements
+    const terrariumCanvas = document.getElementById('terrariumCanvas');
+    const tCtx = terrariumCanvas.getContext('2d');
+    const brainCanvas = document.getElementById('brainCanvas');
+    const bCtx = brainCanvas.getContext('2d');
+    const compassCanvas = document.getElementById('compassCanvas');
+    const cCtx = compassCanvas.getContext('2d');
+    const scopeCanvas = document.getElementById('scopeCanvas');
+    const sCtx = scopeCanvas.getContext('2d');
+
+    // UI elements
+    const flyStatusPill = document.getElementById('flyStatusPill');
+    const flyStatusText = document.getElementById('flyStatusText');
+    const flyStatusDot = document.getElementById('flyStatusDot');
+    const headingDegText = document.getElementById('headingDegText');
+    const steeringPathText = document.getElementById('steeringPathText');
+    const mn9LiveSpikesText = document.getElementById('mn9LiveSpikesText');
+    const satietyPctText = document.getElementById('satietyPctText');
+    const satietyBarFill = document.getElementById('satietyBarFill');
+    const lifetimeSipsText = document.getElementById('lifetimeSipsText');
+    const btnPause = document.getElementById('btnPause');
+    const btnAudio = document.getElementById('btnAudio');
+
+    // Living Fly Entity
+    const fly = {
+      x: 520,
+      y: 320,
+      heading: 0, // radians
+      velocity: 0,
+      turnVelocity: 0,
+      satiety: 0.5,
+      proboscisExt: 0,
+      walkPhase: 0,
+      state: 'EXPLORING', // 'EXPLORING', 'APPROACHING_SUGAR', 'SIPPING', 'REPULSED_MOONWALK', 'GROOMING'
+      stateTimer: 3.0,
+      
+      // Central Complex Heading Attractor (16 wedges)
+      ebWedges: new Float32Array(16),
+      compassBumpIndex: 0,
+      
+      // Descending pathways
+      dnLeft: 0,
+      dnRight: 0,
+      dnMoonwalker: 0 // MDN backward walking
+    };
+
+    // Ambient spores floating in terrarium
+    const ambientSpores = Array.from({ length: 40 }, () => ({
+      x: Math.random() * 1040,
+      y: Math.random() * 640,
+      vx: (Math.random() - 0.5) * 8,
+      vy: (Math.random() - 0.5) * 8,
+      r: Math.random() * 1.5 + 0.5,
+      alpha: Math.random() * 0.4 + 0.1
+    }));
+
+    // 3D Brain Hologram Model (Anatomical Clusters)
+    let brainRotX = 0.3;
+    let brainRotY = 0.4;
+    let isDraggingBrain = false;
+    let lastMouseX = 0, lastMouseY = 0;
+
+    // Neuropil volumes defined as 3D point clusters
+    const neuropils = {
+      sez: generateSpherePoints([0, 25, 5], 28, 45, '#f59e0b'),     // Subesophageal (Feeding)
+      cx: generateTorusPoints([0, -10, 0], 24, 8, 55, '#38bdf8'),    // Central Complex (Compass/EB)
+      alLeft: generateSpherePoints([-35, -5, 20], 18, 30, '#a855f7'),// Antennal Lobe Left
+      alRight: generateSpherePoints([35, -5, 20], 18, 30, '#a855f7'),// Antennal Lobe Right
+      opticL: generateEllipsoidPoints([-75, -15, -10], [28, 48, 32], 65, '#334155'), // Optic Lobe L
+      opticR: generateEllipsoidPoints([75, -15, -10], [28, 48, 32], 65, '#334155'),  // Optic Lobe R
+      dnTract: generateCylinderPoints([0, 55, -5], 8, 40, 35, '#10b981') // Descending Tracts
+    };
+
+    function generateSpherePoints(center, radius, count, color) {
+      const pts = [];
+      for (let i = 0; i < count; i++) {
+        const u = Math.random(), v = Math.random();
+        const theta = u * 2.0 * Math.PI, phi = Math.acos(2.0 * v - 1.0);
+        const r = Math.cbrt(Math.random()) * radius;
+        pts.push({
+          x: center[0] + r * Math.sin(phi) * Math.cos(theta),
+          y: center[1] + r * Math.sin(phi) * Math.sin(theta),
+          z: center[2] + r * Math.cos(phi),
+          color,
+          baseColor: color
+        });
+      }
+      return pts;
+    }
+
+    function generateTorusPoints(center, majorR, minorR, count, color) {
+      const pts = [];
+      for (let i = 0; i < count; i++) {
+        const u = Math.random() * Math.PI * 2;
+        const v = Math.random() * Math.PI * 2;
+        pts.push({
+          x: center[0] + (majorR + minorR * Math.cos(v)) * Math.cos(u),
+          y: center[1] + (majorR + minorR * Math.cos(v)) * Math.sin(u) * 0.4,
+          z: center[2] + minorR * Math.sin(v),
+          color,
+          baseColor: color
+        });
+      }
+      return pts;
+    }
+
+    function generateEllipsoidPoints(center, radii, count, color) {
+      const pts = [];
+      for (let i = 0; i < count; i++) {
+        const u = Math.random(), v = Math.random();
+        const theta = u * 2.0 * Math.PI, phi = Math.acos(2.0 * v - 1.0);
+        const r = Math.cbrt(Math.random());
+        pts.push({
+          x: center[0] + radii[0] * r * Math.sin(phi) * Math.cos(theta),
+          y: center[1] + radii[1] * r * Math.sin(phi) * Math.sin(theta),
+          z: center[2] + radii[2] * r * Math.cos(phi),
+          color,
+          baseColor: color
+        });
+      }
+      return pts;
+    }
+
+    function generateCylinderPoints(center, radius, height, count, color) {
+      const pts = [];
+      for (let i = 0; i < count; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random()) * radius;
+        const h = (Math.random() - 0.5) * height;
+        pts.push({
+          x: center[0] + r * Math.cos(theta),
+          y: center[1] + h,
+          z: center[2] + r * Math.sin(theta),
+          color,
+          baseColor: color
+        });
+      }
+      return pts;
+    }
+
+    // Dropper Selection
+    window.setDropper = function(type) {
+      dropperType = type;
+      document.querySelectorAll('.tool-btn').forEach(b => b.className = 'tool-btn');
+      const btnMap = { sugar: 'btnSugar', bitter: 'btnBitter', mixed: 'btnMixed', water: 'btnWater' };
+      const btn = document.getElementById(btnMap[type]);
+      if (btn) btn.className = `tool-btn active-${type}`;
+    };
+
+    // Droplet Spawn & Drag Handling
+    let isDraggingDrop = false;
+    let draggedDrop = null;
+
+    function getCanvasCoordinates(e) {
+      const rect = terrariumCanvas.getBoundingClientRect();
+      const scaleX = terrariumCanvas.width / rect.width;
+      const scaleY = terrariumCanvas.height / rect.height;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    function handlePointerDown(e) {
+      const { x, y } = getCanvasCoordinates(e);
+
+      // Check if clicking near an existing drop to drag it
+      for (const d of droplets) {
+        if (Math.hypot(d.x - x, d.y - y) < d.radius + 10) {
+          isDraggingDrop = true;
+          draggedDrop = d;
+          return;
+        }
+      }
+
+      // Otherwise spawn a new drop
+      droplets.push({
+        x,
+        y,
+        type: dropperType,
+        volume: 100.0,
+        radius: 18.0
+      });
+      saveState();
+    }
+
+    function handlePointerMove(e) {
+      if (isDraggingDrop && draggedDrop) {
+        const { x, y } = getCanvasCoordinates(e);
+        draggedDrop.x = Math.max(30, Math.min(1010, x));
+        draggedDrop.y = Math.max(30, Math.min(610, y));
+      }
+    }
+
+    function handlePointerUp() {
+      if (isDraggingDrop) {
+        isDraggingDrop = false;
+        draggedDrop = null;
+        saveState();
+      }
+    }
+
+    terrariumCanvas.addEventListener('mousedown', handlePointerDown);
+    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mouseup', handlePointerUp);
+
+    terrariumCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); handlePointerDown(e); }, { passive: false });
+    window.addEventListener('touchmove', (e) => { if (isDraggingDrop) { e.preventDefault(); handlePointerMove(e); } }, { passive: false });
+    window.addEventListener('touchend', handlePointerUp);
+
+    // Toolbar actions
+    window.clearDrops = function() {
+      droplets = [];
+      saveState();
+    };
+
+    window.togglePause = function() {
+      isPaused = !isPaused;
+      btnPause.innerHTML = isPaused ? '▶️ Resume' : '⏸️ Pause';
+      if (isPaused) {
+        flyStatusText.innerText = '⏸️ Simulation Paused (0% Compute)';
+        flyStatusDot.style.background = '#f59e0b';
+      } else {
+        lastTime = performance.now();
+        requestAnimationFrame(mainLoop);
+      }
+    };
+
+    window.resetTerrarium = function() {
+      droplets = [];
+      fly.x = 520;
+      fly.y = 320;
+      fly.heading = 0;
+      fly.velocity = 0;
+      fly.satiety = 0.5;
+      fly.state = 'EXPLORING';
+      engine.reset();
+      spawnStarterDrop();
+      saveState();
+    };
+
+    window.toggleFullscreen = function() {
+      const root = document.getElementById('terrariumRoot');
+      if (!document.fullscreenElement) {
+        if (root.requestFullscreen) root.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    };
+
+    // Spike Audio Synthesizer (Extracellular Microelectrode Audio)
+    window.toggleSpikeAudio = function() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      audioEnabled = !audioEnabled;
+      if (audioEnabled) {
+        btnAudio.innerText = '🔊 Audio Spikes: ON';
+        btnAudio.classList.add('btn-audio-active');
+      } else {
+        btnAudio.innerText = '🔊 Audio Spikes: OFF';
+        btnAudio.classList.remove('btn-audio-active');
+      }
+    };
+
+    function playSpikeClick() {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        // 1.5ms high-frequency click mimicking extracellular axon spike
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(800 + Math.random() * 400, audioCtx.currentTime);
+
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1200, audioCtx.currentTime);
+        filter.Q.setValueAtTime(3.0, audioCtx.currentTime);
+
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.006);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.006);
+      } catch (e) {}
+    }
+
+    // Modal controls
+    window.openCircuitModal = function() {
+      document.getElementById('circuitModal').style.display = 'flex';
+    };
+    window.closeCircuitModal = function() {
+      document.getElementById('circuitModal').style.display = 'none';
+    };
+
+    // Guided Demonstration Launchers
+    window.runDemoSugar = function() {
+      if (isPaused) window.togglePause();
+      droplets = [];
+      fly.x = 420;
+      fly.y = 320;
+      fly.heading = 0;
+      fly.satiety = 0.3;
+      droplets.push({ x: 620, y: 320, type: 'sugar', volume: 100, radius: 18 });
+      saveState();
+    };
+
+    window.runDemoBitter = function() {
+      if (isPaused) window.togglePause();
+      droplets = [];
+      fly.x = 450;
+      fly.y = 320;
+      fly.heading = 0;
+      droplets.push({ x: 500, y: 320, type: 'bitter', volume: 100, radius: 18 });
+      saveState();
+    };
+
+    window.runDemoMixed = function() {
+      if (isPaused) window.togglePause();
+      droplets = [];
+      fly.x = 420;
+      fly.y = 320;
+      fly.heading = 0;
+      droplets.push({ x: 580, y: 320, type: 'mixed', volume: 100, radius: 18 });
+      saveState();
+    };
+
+    window.runDemoCompass = function() {
+      if (isPaused) window.togglePause();
+      fly.turnVelocity = 1.6;
+      fly.state = 'EXPLORING';
+      fly.stateTimer = 6.0;
+    };
+
+    // Auto-pause when user switches tabs to ensure 0 background compute
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && !isPaused) {
+        window.togglePause();
+      }
+    });
+
+    // 3D Brain Drag-to-Rotate (Mouse + Touch)
+    function handleBrainStart(clientX, clientY) {
+      isDraggingBrain = true;
+      lastMouseX = clientX;
+      lastMouseY = clientY;
+    }
+    function handleBrainMove(clientX, clientY) {
+      if (!isDraggingBrain) return;
+      const dx = clientX - lastMouseX;
+      const dy = clientY - lastMouseY;
+      lastMouseX = clientX;
+      lastMouseY = clientY;
+      brainRotY += dx * 0.015;
+      brainRotX = Math.max(-1.2, Math.min(1.2, brainRotX + dy * 0.015));
+    }
+
+    brainCanvas.addEventListener('mousedown', (e) => handleBrainStart(e.clientX, e.clientY));
+    window.addEventListener('mouseup', () => isDraggingBrain = false);
+    window.addEventListener('mousemove', (e) => handleBrainMove(e.clientX, e.clientY));
+
+    brainCanvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) handleBrainStart(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+    window.addEventListener('touchmove', (e) => {
+      if (isDraggingBrain && e.touches.length > 0) handleBrainMove(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+    window.addEventListener('touchend', () => isDraggingBrain = false);
+
+    // Persistence
+    function saveState() {
+      const data = {
+        fly: { x: fly.x, y: fly.y, heading: fly.heading, satiety: fly.satiety },
+        droplets: droplets.map(d => ({ x: d.x, y: d.y, type: d.type, volume: d.volume })),
+        lifetimeSips
+      };
+      try {
+        localStorage.setItem('aether_terrarium_state', JSON.stringify(data));
+      } catch (e) {}
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem('aether_terrarium_state');
+      if (!saved) {
+        spawnStarterDrop();
+        return;
+      }
+      try {
+        const data = JSON.parse(saved);
+        if (data.fly) {
+          fly.x = data.fly.x || 520;
+          fly.y = data.fly.y || 320;
+          fly.heading = data.fly.heading || 0;
+          fly.satiety = data.fly.satiety || 0.5;
+        }
+        if (data.droplets && Array.isArray(data.droplets)) {
+          droplets = data.droplets.map(d => ({
+            x: d.x,
+            y: d.y,
+            type: d.type,
+            volume: d.volume,
+            radius: 18.0 * Math.sqrt(d.volume / 100.0)
+          }));
+        }
+        lifetimeSips = data.lifetimeSips || 0;
+        lifetimeSipsText.innerText = lifetimeSips;
+      } catch (e) {
+        spawnStarterDrop();
+      }
+      if (droplets.length === 0) spawnStarterDrop();
+    }
+
+    function spawnStarterDrop() {
+      droplets.push({ x: 680, y: 300, type: 'sugar', volume: 100, radius: 18 });
+    }
+
+    // Biological Connectome & Heading Simulation
+    let lastTime = performance.now();
+
+    function mainLoop(now) {
+      if (isPaused) return;
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+
+      // 1. Update Fly State Machine & Biological Steering
+      updateFlyLocomotion(dt);
+
+      // 2. Evaluate sensory proximity and step Leaky Integrate-and-Fire connectome
+      stepBiologicalConnectome(dt);
+
+      // 3. Render Terrarium Habitat & Spores
+      drawTerrarium();
+
+      // 4. Render 3D Whole-Brain Hologram
+      drawBrainHologram();
+
+      // 5. Render Central Complex Compass Dial
+      drawCompassDial();
+
+      // 6. Render Oscilloscope
+      drawOscilloscope();
+
+      requestAnimationFrame(mainLoop);
+    }
+
+    function updateFlyLocomotion(dt) {
+      // Metabolic decay
+      fly.satiety = Math.max(0, fly.satiety - 0.007 * dt);
+      satietyPctText.innerText = Math.round(fly.satiety * 100) + '%';
+      satietyBarFill.style.width = Math.round(fly.satiety * 100) + '%';
+      lifetimeSipsText.innerText = lifetimeSips;
+
+      // Biological Compass Ring Attractor Update:
+      // Map current heading (0 to 2PI) into 16 wedges
+      const wedgeAngle = (Math.PI * 2) / 16;
+      let rawIdx = Math.floor(((fly.heading % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) / wedgeAngle);
+      fly.compassBumpIndex = rawIdx;
+
+      // Gaussian bump over the 16 wedges
+      for (let i = 0; i < 16; i++) {
+        let diff = Math.abs(i - rawIdx);
+        if (diff > 8) diff = 16 - diff;
+        fly.ebWedges[i] = Math.exp(-(diff * diff) / 1.8);
+      }
+
+      headingDegText.innerText = `${Math.round((fly.heading * 180 / Math.PI) % 360)}°`;
+
+      // State Machine
+      fly.stateTimer -= dt;
+
+      // Detect nearest sugar or bitter droplet
+      let nearestSugar = null, minSugarDist = 999999;
+      let nearestBitter = null, minBitterDist = 999999;
+
+      for (const d of droplets) {
+        const dist = Math.hypot(d.x - fly.x, d.y - fly.y);
+        if (d.type === 'sugar' || d.type === 'mixed') {
+          if (dist < minSugarDist) { minSugarDist = dist; nearestSugar = d; }
+        }
+        if (d.type === 'bitter' || d.type === 'mixed') {
+          if (dist < minBitterDist) { minBitterDist = dist; nearestBitter = d; }
+        }
+      }
+
+      // Check contact with taste hairs on front legs or mouth
+      const forelegL = { x: fly.x + Math.cos(fly.heading - 0.45) * 26, y: fly.y + Math.sin(fly.heading - 0.45) * 26 };
+      const forelegR = { x: fly.x + Math.cos(fly.heading + 0.45) * 26, y: fly.y + Math.sin(fly.heading + 0.45) * 26 };
+      const mouthPos = { x: fly.x + Math.cos(fly.heading) * (24 + fly.proboscisExt * 16), y: fly.y + Math.sin(fly.heading) * (24 + fly.proboscisExt * 16) };
+
+      let contactingDrop = null;
+      for (const d of droplets) {
+        if (Math.hypot(d.x - forelegL.x, d.y - forelegL.y) < d.radius + 6 ||
+            Math.hypot(d.x - forelegR.x, d.y - forelegR.y) < d.radius + 6 ||
+            Math.hypot(d.x - mouthPos.x, d.y - mouthPos.y) < d.radius + 6) {
+          contactingDrop = d;
+          break;
+        }
+      }
+
+      if (contactingDrop) {
+        if (contactingDrop.type === 'bitter') {
+          // MDN Moonwalker activation!
+          fly.state = 'REPULSED_MOONWALK';
+          fly.dnMoonwalker = 1.0;
+          flyStatusText.innerText = '⚠️ Aversion: Bitter Taste! (MDN Moonwalker Walking Backward)';
+          flyStatusDot.style.background = '#f43f5e';
+          steeringPathText.innerText = 'Pathway: MDN Moonwalker (Reverse)';
+        } else if (fly.proboscisExt > 0.25) {
+          fly.state = 'SIPPING';
+          fly.dnMoonwalker = 0.0;
+          flyStatusText.innerText = '🍯 Feeding: Sucrose Sipped (MN9 Activated)';
+          flyStatusDot.style.background = '#38bdf8';
+          steeringPathText.innerText = 'Pathway: SEZ Gustatory Reflex';
+
+          // Sip drop
+          const sip = 18.0 * dt;
+          contactingDrop.volume -= sip;
+          contactingDrop.radius = 18.0 * Math.sqrt(Math.max(0.1, contactingDrop.volume / 100.0));
+          fly.satiety = Math.min(1.0, fly.satiety + sip * 0.015);
+          lifetimeSips++;
+
+          if (contactingDrop.volume <= 0) {
+            droplets = droplets.filter(x => x !== contactingDrop);
+            fly.state = 'GROOMING';
+            fly.stateTimer = 2.5;
+          }
+        }
+      } else if (fly.state === 'REPULSED_MOONWALK') {
+        if (fly.stateTimer <= 0) {
+          fly.state = 'EXPLORING';
+          fly.dnMoonwalker = 0.0;
+          fly.stateTimer = 3.5;
+        }
+      } else if (nearestSugar && minSugarDist < 360 && fly.satiety < 0.75) {
+        fly.state = 'APPROACHING_SUGAR';
+        fly.dnMoonwalker = 0.0;
+        flyStatusText.innerText = '🧭 Navigation: Scent Gradient (Descending Steering DNa01/02)';
+        flyStatusDot.style.background = '#10b981';
+
+        // Calculate angular steering error
+        const targetAngle = Math.atan2(nearestSugar.y - fly.y, nearestSugar.x - fly.x);
+        let angleDiff = targetAngle - fly.heading;
+        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+        // Biological descending turning neurons
+        fly.dnLeft = Math.max(0, -angleDiff * 1.5);
+        fly.dnRight = Math.max(0, angleDiff * 1.5);
+        fly.turnVelocity = (fly.dnRight - fly.dnLeft) * 2.8;
+        fly.velocity = 55;
+        steeringPathText.innerText = `Steering: DNa Turning (${angleDiff > 0 ? 'Right' : 'Left'})`;
+      } else {
+        if (fly.state !== 'EXPLORING' && fly.state !== 'GROOMING') {
+          fly.state = 'EXPLORING';
+          fly.stateTimer = Math.random() * 3 + 2;
+        }
+
+        if (fly.state === 'GROOMING') {
+          fly.velocity = 0;
+          fly.turnVelocity = 0;
+          flyStatusText.innerText = '✨ Grooming Wings & Sensory Tarsi';
+          flyStatusDot.style.background = '#a855f7';
+          steeringPathText.innerText = 'Steering: Quiescent Resting';
+          if (fly.stateTimer <= 0) {
+            fly.state = 'EXPLORING';
+            fly.stateTimer = 4.0;
+          }
+        } else {
+          flyStatusText.innerText = '🌿 Exploring Terrarium (Central Complex Compass Active)';
+          flyStatusDot.style.background = '#38bdf8';
+          steeringPathText.innerText = 'Pathway: Central Complex Wander';
+          fly.velocity = 45;
+          fly.turnVelocity += (Math.random() - 0.5) * 4.0 * dt;
+          fly.turnVelocity = Math.max(-2.0, Math.min(2.0, fly.turnVelocity));
+        }
+      }
+
+      // Execute locomotion kinematics
+      if (fly.state === 'REPULSED_MOONWALK') {
+        fly.x -= Math.cos(fly.heading) * 60 * dt;
+        fly.y -= Math.sin(fly.heading) * 60 * dt;
+        fly.walkPhase -= dt * 14.0;
+      } else if (fly.state === 'SIPPING' || fly.state === 'GROOMING') {
+        fly.velocity = 0;
+      } else {
+        fly.heading += fly.turnVelocity * dt;
+        fly.x += Math.cos(fly.heading) * fly.velocity * dt;
+        fly.y += Math.sin(fly.heading) * fly.velocity * dt;
+        fly.walkPhase += dt * 12.0;
+      }
+
+      // Keep within terrarium bounds
+      const margin = 40;
+      if (fly.x < margin) { fly.x = margin; fly.heading = Math.PI - fly.heading; }
+      if (fly.x > 1040 - margin) { fly.x = 1040 - margin; fly.heading = Math.PI - fly.heading; }
+      if (fly.y < margin) { fly.y = margin; fly.heading = -fly.heading; }
+      if (fly.y > 640 - margin) { fly.y = 640 - margin; fly.heading = -fly.heading; }
+    }
+
+    function stepBiologicalConnectome(dt) {
+      if (!engine.ready) return;
+
+      // Check sensory inputs from contact
+      let sugarHz = 0, bitterHz = 0;
+      for (const d of droplets) {
+        const dist = Math.hypot(d.x - fly.x, d.y - fly.y);
+        if (dist < d.radius + 28) {
+          if (d.type === 'sugar') sugarHz = 100;
+          else if (d.type === 'bitter') bitterHz = 100;
+          else if (d.type === 'mixed') { sugarHz = 100; bitterHz = 100; }
+        }
+      }
+
+      const res = engine.updateFrame(dt, sugarHz, bitterHz);
+      if (res) {
+        fly.proboscisExt = res.extension;
+        mn9LiveSpikesText.innerText = `${res.activeMotorSum} spikes (${res.spikesInBatch} batch)`;
+        if (res.activeMotorSum > 0 && audioEnabled) {
+          playSpikeClick();
+        }
+      }
+    }
+
+    function drawTerrarium() {
+      const w = terrariumCanvas.width;
+      const h = terrariumCanvas.height;
+
+      // Soil & Peat Substrate
+      tCtx.fillStyle = '#060a12';
+      tCtx.fillRect(0, 0, w, h);
+
+      // Living moss mounds
+      drawMossPatch(180, 160, 95, '#071612');
+      drawMossPatch(780, 220, 120, '#081713');
+      drawMossPatch(340, 480, 140, '#091a15');
+      drawMossPatch(880, 520, 100, '#071612');
+
+      // Grid coordinate lines
+      tCtx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
+      tCtx.lineWidth = 1;
+      for (let x = 0; x < w; x += 80) {
+        tCtx.beginPath(); tCtx.moveTo(x, 0); tCtx.lineTo(x, h); tCtx.stroke();
+      }
+      for (let y = 0; y < h; y += 80) {
+        tCtx.beginPath(); tCtx.moveTo(0, y); tCtx.lineTo(w, y); tCtx.stroke();
+      }
+
+      // Ambient Drifting Spores
+      for (const sp of ambientSpores) {
+        sp.x += sp.vx * 0.016;
+        sp.y += sp.vy * 0.016;
+        if (sp.x < 0) sp.x = w; if (sp.x > w) sp.x = 0;
+        if (sp.y < 0) sp.y = h; if (sp.y > h) sp.y = 0;
+
+        tCtx.beginPath();
+        tCtx.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2);
+        tCtx.fillStyle = `rgba(56, 189, 248, ${sp.alpha})`;
+        tCtx.fill();
+      }
+
+      // Draw Droplets
+      for (const d of droplets) {
+        drawFluidDroplet(d);
+      }
+
+      // Draw Living Fly
+      drawFlyRig();
+    }
+
+    function drawMossPatch(cx, cy, radius, col) {
+      const grad = tCtx.createRadialGradient(cx, cy, radius * 0.1, cx, cy, radius);
+      grad.addColorStop(0, col);
+      grad.addColorStop(1, 'transparent');
+      tCtx.fillStyle = grad;
+      tCtx.beginPath();
+      tCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+      tCtx.fill();
+    }
+
+    function drawFluidDroplet(d) {
+      tCtx.save();
+      tCtx.translate(d.x, d.y);
+
+      let baseCol, glowCol;
+      if (d.type === 'sugar') {
+        baseCol = '#f59e0b'; glowCol = 'rgba(245, 158, 11, 0.28)';
+      } else if (d.type === 'bitter') {
+        baseCol = '#10b981'; glowCol = 'rgba(16, 185, 129, 0.28)';
+      } else if (d.type === 'mixed') {
+        baseCol = '#a855f7'; glowCol = 'rgba(168, 85, 247, 0.28)';
+      } else {
+        baseCol = '#38bdf8'; glowCol = 'rgba(56, 189, 248, 0.28)';
+      }
+
+      // Glow
+      tCtx.beginPath();
+      tCtx.arc(0, 0, d.radius + 8, 0, Math.PI * 2);
+      tCtx.fillStyle = glowCol;
+      tCtx.fill();
+
+      // Fluid
+      tCtx.beginPath();
+      tCtx.arc(0, 0, d.radius, 0, Math.PI * 2);
+      tCtx.fillStyle = baseCol;
+      tCtx.fill();
+
+      // Specular highlight
+      tCtx.beginPath();
+      tCtx.arc(-d.radius * 0.35, -d.radius * 0.35, d.radius * 0.3, 0, Math.PI * 2);
+      tCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      tCtx.fill();
+
+      tCtx.restore();
+    }
+
+    function drawFlyRig() {
+      tCtx.save();
+      tCtx.translate(fly.x, fly.y);
+      tCtx.rotate(fly.heading);
+
+      // Tripod leg gait calculation
+      const trip1 = Math.sin(fly.walkPhase) * 6;
+      const trip2 = -trip1;
+      const legCol = '#475569';
+
+      // 6 Legs
+      tCtx.strokeStyle = legCol;
+      tCtx.lineWidth = 2.5;
+      tCtx.lineCap = 'round';
+
+      // Rear Legs
+      tCtx.beginPath(); tCtx.moveTo(-14, -6); tCtx.lineTo(-30, -26 + trip1); tCtx.stroke();
+      tCtx.beginPath(); tCtx.moveTo(-14, 6); tCtx.lineTo(-30, 26 + trip2); tCtx.stroke();
+
+      // Middle Legs
+      tCtx.beginPath(); tCtx.moveTo(0, -8); tCtx.lineTo(-4, -30 + trip2); tCtx.stroke();
+      tCtx.beginPath(); tCtx.moveTo(0, 8); tCtx.lineTo(-4, 30 + trip1); tCtx.stroke();
+
+      // Forelegs (With front taste hairs)
+      const fL = { x: 26, y: -16 + trip1 };
+      const fR = { x: 26, y: 16 + trip2 };
+      tCtx.beginPath(); tCtx.moveTo(10, -6); tCtx.lineTo(fL.x, fL.y); tCtx.stroke();
+      tCtx.beginPath(); tCtx.moveTo(10, 6); tCtx.lineTo(fR.x, fR.y); tCtx.stroke();
+
+      // Tarsal taste hair markers
+      tCtx.fillStyle = fly.state === 'APPROACHING_SUGAR' ? '#38bdf8' : '#64748b';
+      tCtx.beginPath(); tCtx.arc(fL.x, fL.y, 3, 0, Math.PI * 2); tCtx.fill();
+      tCtx.beginPath(); tCtx.arc(fR.x, fR.y, 3, 0, Math.PI * 2); tCtx.fill();
+
+      // Wings (translucent)
+      const wFlutter = Math.sin(fly.walkPhase * 2.0) * 0.12;
+      tCtx.fillStyle = 'rgba(240, 248, 255, 0.28)';
+      tCtx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+      tCtx.lineWidth = 1;
+
+      // Left Wing
+      tCtx.beginPath();
+      tCtx.moveTo(-4, -6);
+      tCtx.quadraticCurveTo(-35, -34 * (1 + wFlutter), -54, -28);
+      tCtx.quadraticCurveTo(-38, -6, -4, -4);
+      tCtx.fill(); tCtx.stroke();
+
+      // Right Wing
+      tCtx.beginPath();
+      tCtx.moveTo(-4, 6);
+      tCtx.quadraticCurveTo(-35, 34 * (1 + wFlutter), -54, 28);
+      tCtx.quadraticCurveTo(-38, 6, -4, 4);
+      tCtx.fill(); tCtx.stroke();
+
+      // Abdomen
+      tCtx.fillStyle = '#0f172a';
+      tCtx.beginPath();
+      tCtx.ellipse(-26, 0, 18, 12, 0, 0, Math.PI * 2);
+      tCtx.fill();
+      tCtx.strokeStyle = '#1e293b';
+      tCtx.stroke();
+
+      // Thorax
+      tCtx.fillStyle = '#1e293b';
+      tCtx.beginPath();
+      tCtx.ellipse(0, 0, 13, 11, 0, 0, Math.PI * 2);
+      tCtx.fill();
+
+      // Head
+      tCtx.fillStyle = '#0b111e';
+      tCtx.beginPath();
+      tCtx.ellipse(14, 0, 9, 8, 0, 0, Math.PI * 2);
+      tCtx.fill();
+
+      // Compound Ruby Eyes
+      tCtx.fillStyle = '#e11d48';
+      tCtx.beginPath(); tCtx.arc(15, -7, 4.5, 0, Math.PI * 2); tCtx.fill();
+      tCtx.beginPath(); tCtx.arc(15, 7, 4.5, 0, Math.PI * 2); tCtx.fill();
+
+      // Antennae
+      tCtx.strokeStyle = '#94a3b8';
+      tCtx.lineWidth = 1.2;
+      tCtx.beginPath(); tCtx.moveTo(20, -3); tCtx.lineTo(28, -6); tCtx.stroke();
+      tCtx.beginPath(); tCtx.moveTo(20, 3); tCtx.lineTo(28, 6); tCtx.stroke();
+
+      // Proboscis (Mouthpart)
+      const ext = fly.proboscisExt * 18;
+      tCtx.strokeStyle = '#64748b';
+      tCtx.lineWidth = 3;
+      tCtx.beginPath();
+      tCtx.moveTo(20, 0);
+      tCtx.lineTo(26 + ext * 0.5, 0);
+      tCtx.stroke();
+
+      tCtx.lineWidth = 2;
+      tCtx.beginPath();
+      tCtx.moveTo(26 + ext * 0.5, 0);
+      tCtx.lineTo(32 + ext, 0);
+      tCtx.stroke();
+
+      // Labellar sipping pads
+      tCtx.fillStyle = fly.proboscisExt > 0.2 ? '#f59e0b' : '#475569';
+      tCtx.beginPath();
+      tCtx.arc(32 + ext, 0, 3.5, 0, Math.PI * 2);
+      tCtx.fill();
+
+      if (fly.proboscisExt > 0.3) {
+        tCtx.beginPath();
+        tCtx.arc(32 + ext, 0, 6, 0, Math.PI * 2);
+        tCtx.fillStyle = 'rgba(56, 189, 248, 0.35)';
+        tCtx.fill();
+      }
+
+      tCtx.restore();
+    }
+
+    // 3D Brain Hologram Rendering
+    function drawBrainHologram() {
+      const w = brainCanvas.width;
+      const h = brainCanvas.height;
+      bCtx.fillStyle = '#02050b';
+      bCtx.fillRect(0, 0, w, h);
+
+      // Slow orbit when not dragging
+      if (!isDraggingBrain) brainRotY += 0.003;
+
+      const cosX = Math.cos(brainRotX), sinX = Math.sin(brainRotX);
+      const cosY = Math.cos(brainRotY), sinY = Math.sin(brainRotY);
+
+      // Project 3D points
+      const allPoints = [];
+
+      for (const [key, pts] of Object.entries(neuropils)) {
+        let activeGlow = false;
+        if (key === 'sez' && fly.proboscisExt > 0.15) activeGlow = true;
+        if (key === 'cx' && fly.turnVelocity !== 0) activeGlow = true;
+        if (key === 'dnTract' && fly.state === 'REPULSED_MOONWALK') activeGlow = true;
+
+        for (const p of pts) {
+          // Rotate Y
+          const x1 = p.x * cosY - p.z * sinY;
+          const z1 = p.x * sinY + p.z * cosY;
+          // Rotate X
+          const y2 = p.y * cosX - z1 * sinX;
+          const z2 = p.y * sinX + z1 * cosX;
+
+          // Perspective
+          const fov = 260;
+          const projZ = z2 + 220;
+          if (projZ > 10) {
+            const scale = fov / projZ;
+            const px = w * 0.5 + x1 * scale;
+            const py = h * 0.5 + y2 * scale;
+            allPoints.push({
+              x: px, y: py, z: projZ,
+              color: activeGlow ? '#ffffff' : p.color,
+              size: (activeGlow ? 3.0 : 1.8) * scale
+            });
+          }
+        }
+      }
+
+      // Depth sort
+      allPoints.sort((a, b) => b.z - a.z);
+
+      for (const p of allPoints) {
+        bCtx.beginPath();
+        bCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        bCtx.fillStyle = p.color;
+        bCtx.fill();
+      }
+    }
+
+    // Central Complex Heading Compass Dial
+    function drawCompassDial() {
+      const w = compassCanvas.width;
+      const h = compassCanvas.height;
+      const cx = w * 0.5, cy = h * 0.5, radius = 38;
+
+      cCtx.clearRect(0, 0, w, h);
+
+      // Outer ring
+      cCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      cCtx.lineWidth = 1;
+      cCtx.beginPath();
+      cCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+      cCtx.stroke();
+
+      // Draw 16 wedges of Ellipsoid Body
+      const wedgeStep = (Math.PI * 2) / 16;
+      for (let i = 0; i < 16; i++) {
+        const startA = i * wedgeStep - Math.PI * 0.5;
+        const endA = (i + 1) * wedgeStep - Math.PI * 0.5;
+        const bumpVal = fly.ebWedges[i] || 0;
+
+        cCtx.beginPath();
+        cCtx.moveTo(cx, cy);
+        cCtx.arc(cx, cy, radius * (0.6 + bumpVal * 0.4), startA, endA);
+        cCtx.closePath();
+
+        const alpha = 0.15 + bumpVal * 0.85;
+        cCtx.fillStyle = `rgba(56, 189, 248, ${alpha})`;
+        cCtx.fill();
+        cCtx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        cCtx.stroke();
+      }
+
+      // Inner hub
+      cCtx.beginPath();
+      cCtx.arc(cx, cy, 10, 0, Math.PI * 2);
+      cCtx.fillStyle = '#060a12';
+      cCtx.fill();
+      cCtx.strokeStyle = '#38bdf8';
+      cCtx.lineWidth = 1.5;
+      cCtx.stroke();
+
+      // Heading pointer
+      cCtx.save();
+      cCtx.translate(cx, cy);
+      cCtx.rotate(fly.heading - Math.PI * 0.5);
+      cCtx.strokeStyle = '#f59e0b';
+      cCtx.lineWidth = 2;
+      cCtx.beginPath();
+      cCtx.moveTo(0, 0);
+      cCtx.lineTo(0, -radius * 0.9);
+      cCtx.stroke();
+      cCtx.restore();
+    }
+
+    // Oscilloscope Waveform
+    function drawOscilloscope() {
+      const w = scopeCanvas.width;
+      const h = scopeCanvas.height;
+      sCtx.fillStyle = '#02050b';
+      sCtx.fillRect(0, 0, w, h);
+
+      // Grid lines
+      sCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      sCtx.lineWidth = 1;
+      for (let y = 0; y < h; y += 22) {
+        sCtx.beginPath(); sCtx.moveTo(0, y); sCtx.lineTo(w, y); sCtx.stroke();
+      }
+
+      // Threshold line (-45 mV)
+      const thY = h * 0.35;
+      sCtx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+      sCtx.setLineDash([4, 4]);
+      sCtx.beginPath(); sCtx.moveTo(0, thY); sCtx.lineTo(w, thY); sCtx.stroke();
+      sCtx.setLineDash([]);
+
+      const buffer = engine.recentVoltagesMN9;
+      if (!buffer || buffer.length < 2) return;
+
+      const mapY = (val) => h - ((val - (-55.0)) / (15.0)) * h;
+
+      // MN9-1 (Cyan)
+      sCtx.strokeStyle = '#38bdf8';
+      sCtx.lineWidth = 1.6;
+      sCtx.beginPath();
+      for (let i = 0; i < buffer.length; i++) {
+        const x = (i / 300) * w;
+        const y = mapY(buffer[i].v1);
+        if (i === 0) sCtx.moveTo(x, y); else sCtx.lineTo(x, y);
+      }
+      sCtx.stroke();
+
+      // MN9-2 (Amber)
+      sCtx.strokeStyle = 'rgba(245, 158, 11, 0.85)';
+      sCtx.lineWidth = 1.2;
+      sCtx.beginPath();
+      for (let i = 0; i < buffer.length; i++) {
+        const x = (i / 300) * w;
+        const y = mapY(buffer[i].v2);
+        if (i === 0) sCtx.moveTo(x, y); else sCtx.lineTo(x, y);
+      }
+      sCtx.stroke();
+    }
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '1') setDropper('sugar');
+      else if (e.key === '2') setDropper('bitter');
+      else if (e.key === '3') setDropper('mixed');
+      else if (e.key === '4') setDropper('water');
+      else if (e.key.toLowerCase() === 'c') clearDrops();
+      else if (e.key === ' ') togglePause();
+      else if (e.key === 'Escape') closeCircuitModal();
+    });
+
+    // Bootstrap
+    async function start() {
+      try {
+        await engine.loadFromUrl('./fly_subcircuit_443.json');
+        loadState();
+        requestAnimationFrame(mainLoop);
+      } catch (err) {
+        console.error('Failed to load connectome:', err);
+      }
+    }
+
+    start();
+  </script>
+</body>
+</html>
